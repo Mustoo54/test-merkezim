@@ -1,10 +1,11 @@
 <!DOCTYPE html>
+
 <html lang="tr">
 <head>
-  <meta charset="UTF-8">
-  <title>Gelişmiş Test Sitesi</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
+<meta charset="utf-8"/>
+<title>Gelişmiş Test Sitesi</title>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<style>
     body {
       font-family: 'Poppins', sans-serif;
       background: linear-gradient(135deg, #74ebd5, #acb6e5);
@@ -140,47 +141,41 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧠 Süper Test Merkezi</h1>
-    <div class="completion-bar" id="completionBar">0/10 testi tamamladın! Hadi, hepsini çöz! 🚀</div>
-    <div class="leaderboard" id="leaderboard">Lider Tablosu: Henüz sıralama yok!</div>
-
-    <div class="menu active" id="menu"></div>
-
-    <div class="question-box" id="quiz">
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill"></div>
-      </div>
-      <div class="question" id="questionText"></div>
-      <div>
-        <button onclick="answer(0)" id="btn0">Seçenek 1</button>
-        <button onclick="answer(1)" id="btn1">Seçenek 2</button>
-        <button onclick="answer(2)" id="btn2">Seçenek 3</button>
-      </div>
-    </div>
-
-    <div class="loading" id="loading">🔍 Sonuçlar hazırlanıyor...</div>
-
-    <div class="result" id="result">
-      <div class="emoji" id="emoji"></div>
-      <div class="badge" id="badge"></div>
-      <img class="result-image" id="resultImage" src="" alt="Test Sonucu Görseli">
-      <div class="result-text" id="resultText"></div>
-      <div class="share">
-        <button onclick="shareResult('twitter')">🐦 Twitter</button>
-        <button onclick="shareResult('tiktok')">🎵 TikTok</button>
-        <button onclick="shareResult('instagram')">📸 Instagram</button>
-      </div>
-      <button onclick="goHome()">Ana Menüye Dön</button>
-      <button onclick="tryAnotherTest()">Başka Bir Test Dene</button>
-    </div>
-  </div>
-
-  <!-- Firebase SDK (yalnızca Firestore için) -->
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
-
-  <script>
+<div class="container">
+<h1>🧠 Süper Test Merkezi</h1>
+<div class="completion-bar" id="completionBar">0/10 testi tamamladın! Hadi, hepsini çöz! 🚀</div>
+<div class="leaderboard" id="leaderboard">Lider Tablosu: Henüz sıralama yok!</div>
+<div class="menu active" id="menu"><button onclick="startTest('kişilik')">Kişilik Testi</button><button onclick="startTest('stres')">Stres Testi</button><button onclick="startTest('motivasyon')">Motivasyon Testi</button><button onclick="startTest('empati')">Empati Testi</button><button onclick="startTest('zeka')">Zeka Testi</button><button onclick="startTest('risk')">Risk Testi</button><button onclick="startTest('iletişim')">İletişim Testi</button><button onclick="startTest('odak')">Odak Testi</button><button onclick="startTest('mutluluk')">Mutluluk Testi</button><button onclick="startTest('yaratıcılık')">Yaratıcılık Testi</button></div>
+<div class="question-box" id="quiz">
+<div class="progress-bar">
+<div class="progress-fill" id="progressFill"></div>
+</div>
+<div class="question" id="questionText"></div>
+<div>
+<button id="btn0" onclick="answer(0)">Seçenek 1</button>
+<button id="btn1" onclick="answer(1)">Seçenek 2</button>
+<button id="btn2" onclick="answer(2)">Seçenek 3</button>
+</div>
+</div>
+<div class="loading" id="loading">🔍 Sonuçlar hazırlanıyor...</div>
+<div class="result" id="result">
+<div class="emoji" id="emoji"></div>
+<div class="badge" id="badge"></div>
+<img alt="Test Sonucu Görseli" class="result-image" id="resultImage" src=""/>
+<div class="result-text" id="resultText"></div>
+<div class="share">
+<button onclick="shareResult('twitter')">🐦 Twitter</button>
+<button onclick="shareResult('tiktok')">🎵 TikTok</button>
+<button onclick="shareResult('instagram')">📸 Instagram</button>
+</div>
+<button onclick="goHome()">Ana Menüye Dön</button>
+<button onclick="tryAnotherTest()">Başka Bir Test Dene</button>
+</div>
+</div>
+<!-- Firebase SDK (yalnızca Firestore için) -->
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+<script>
     // Firebase yapılandırması
     const firebaseConfig = {
       apiKey: "AIzaSyBjcxOOGcspTyeo_Ew6qyUR0iN8Qs7EfRA",
