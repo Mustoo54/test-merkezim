@@ -33,7 +33,7 @@
       margin-bottom: 1.5rem;
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     }
-    .menu, .question-box, .result, .loading, .auth-box {
+    .menu, .question-box, .result, .loading {
       display: none;
     }
     .active {
@@ -55,12 +55,6 @@
     button:hover {
       transform: translateY(-3px);
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-    }
-    .auth-button {
-      background: linear-gradient(45deg, #4285f4, #34a853);
-    }
-    .apple-button {
-      background: linear-gradient(45deg, #000000, #333333);
     }
     .progress-bar {
       background: #e0e0e0;
@@ -132,37 +126,26 @@
       font-weight: 600;
     }
     .completion-bar {
-      margin: 1rem 0;
       font-size: 1rem;
       color: #2c3e50;
       text-align: center;
+      margin: 1rem 0;
     }
     .leaderboard {
+      font-size: 1rem;
+      color: #2c3e50;
+      text-align: center;
       margin: 1rem 0;
-      font-size: 1rem;
-      color: #2c3e50;
-      text-align: center;
-    }
-    .user-info {
-      font-size: 1rem;
-      color: #2c3e50;
-      text-align: center;
-      margin-bottom: 1rem;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>🧠 Süper Test Merkezi</h1>
-    <div class="user-info" id="userInfo"></div>
-    <div class="auth-box active" id="authBox">
-      <button class="auth-button" onclick="signInWithGoogle()">Google ile Giriş Yap</button>
-      <button class="apple-button" onclick="signInWithApple()">Apple ile Giriş Yap</button>
-    </div>
     <div class="completion-bar" id="completionBar">0/10 testi tamamladın! Hadi, hepsini çöz! 🚀</div>
     <div class="leaderboard" id="leaderboard">Lider Tablosu: Henüz sıralama yok!</div>
 
-    <div class="menu" id="menu"></div>
+    <div class="menu active" id="menu"></div>
 
     <div class="question-box" id="quiz">
       <div class="progress-bar">
@@ -193,26 +176,24 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (yalnızca Firestore için) -->
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
 
   <script>
-    // Firebase yapılandırması (Kendi projenden al)
+    // Firebase yapılandırması
     const firebaseConfig = {
       apiKey: "AIzaSyBjcxOOGcspTyeo_Ew6qyUR0iN8Qs7EfRA",
-  authDomain: "testmerkezim-e3ed7.firebaseapp.com",
-  projectId: "testmerkezim-e3ed7",
-  storageBucket: "testmerkezim-e3ed7.firebasestorage.app",
-  messagingSenderId: "292626113888",
-  appId: "1:292626113888:web:df0dc46a8b2e6a54a8ea05",
-  measurementId: "G-Z4NWYNBK8X"
+      authDomain: "testmerkezim-e3ed7.firebaseapp.com",
+      projectId: "testmerkezim-e3ed7",
+      storageBucket: "testmerkezim-e3ed7.firebasestorage.app",
+      messagingSenderId: "292626113888",
+      appId: "1:292626113888:web:df0dc46a8b2e6a54a8ea05",
+      measurementId: "G-Z4NWYNBK8X"
     };
 
-    // Firebase'i başlat
+    // Firebase'i başlat (yalnızca Firestore)
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.firestore();
 
     const testNames = ["Kişilik", "Stres", "Motivasyon", "Empati", "Zeka", "Risk", "İletişim", "Odak", "Mutluluk", "Yaratıcılık"];
@@ -500,43 +481,9 @@
       }
     };
 
-    let currentUser = null;
     let currentTest = null;
     let currentQuestion = 0;
     let score = 0;
-
-    // Kullanıcı durumu takibi
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        document.getElementById("userInfo").textContent = `Merhaba, ${user.displayName}!`;
-        document.getElementById("authBox").classList.remove("active");
-        document.getElementById("menu").classList.add("active");
-        updateCompletionBar();
-        updateLeaderboard();
-      } else {
-        currentUser = null;
-        document.getElementById("userInfo").textContent = "";
-        document.getElementById("authBox").classList.add("active");
-        document.getElementById("menu").classList.remove("active");
-        document.getElementById("quiz").classList.remove("active");
-        document.getElementById("result").classList.remove("active");
-      }
-    });
-
-    // Google ile giriş
-    function signInWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .catch(error => alert("Google giriş hatası: " + error.message));
-    }
-
-    // Apple ile giriş
-    function signInWithApple() {
-      const provider = new firebase.auth.OAuthProvider('apple.com');
-      auth.signInWithPopup(provider)
-        .catch(error => alert("Apple giriş hatası: " + error.message));
-    }
 
     // Menü oluştur
     const menuDiv = document.getElementById("menu");
@@ -549,10 +496,6 @@
 
     // Test başlat
     function startTest(testKey) {
-      if (!currentUser) {
-        alert("Lütfen önce giriş yap!");
-        return;
-      }
       currentTest = tests[testKey];
       currentQuestion = 0;
       score = 0;
@@ -594,7 +537,7 @@
     }
 
     // Sonuç göster
-    async function showResult() {
+    function showResult() {
       document.getElementById("loading").classList.remove("active");
       document.getElementById("result").classList.add("active");
       document.getElementById("emoji").textContent = currentTest.emoji;
@@ -607,18 +550,11 @@
       else if (score >= 10) imageUrl = currentTest.images.mid;
       document.getElementById("resultImage").src = imageUrl;
 
-      // Firestore'a kaydet
-      if (currentUser) {
-        const userRef = db.collection("users").doc(currentUser.uid);
-        await userRef.set({
-          displayName: currentUser.displayName,
-          completedTests: firebase.firestore.FieldValue.arrayUnion(currentTest.name),
-          badges: firebase.firestore.FieldValue.arrayUnion(currentTest.badge),
-          totalScore: firebase.firestore.FieldValue.increment(score)
-        }, { merge: true });
-        updateCompletionBar();
-        updateLeaderboard();
-      }
+      // Tamamlanma barını güncelle (kullanıcı olmadan dummy değer)
+      document.getElementById("completionBar").textContent = "0/10 testi tamamladın! Hadi, hepsini çöz! 🚀";
+
+      // Lider tablosunu güncelle (dummy değer)
+      document.getElementById("leaderboard").textContent = "Lider Tablosu: Henüz sıralama yok!";
     }
 
     // Ana menüye dön
@@ -648,29 +584,6 @@
       } else if (platform === 'instagram') {
         alert("Instagram'da hikayene ekle, bu sonucu herkes görsün! 📸 Filtreyi unutma!");
       }
-    }
-
-    // Tamamlanma barını güncelle
-    async function updateCompletionBar() {
-      if (!currentUser) return;
-      const userRef = db.collection("users").doc(currentUser.uid);
-      const doc = await userRef.get();
-      const completedTests = doc.exists ? (doc.data().completedTests || []) : [];
-      const completedCount = completedTests.length;
-      const totalTests = testNames.length;
-      document.getElementById("completionBar").textContent = `${completedCount}/${totalTests} testi tamamladın! Hadi, hepsini çöz! 🚀`;
-    }
-
-    // Lider tablosunu güncelle
-    async function updateLeaderboard() {
-      const usersRef = db.collection("users");
-      const snapshot = await usersRef.orderBy("totalScore", "desc").limit(5).get();
-      let leaderboardText = "Lider Tablosu:\n";
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        leaderboardText += `${data.displayName}: ${data.totalScore || 0} puan\n`;
-      });
-      document.getElementById("leaderboard").textContent = leaderboardText;
     }
   </script>
 </body>
