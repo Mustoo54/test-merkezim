@@ -485,13 +485,13 @@
     let currentQuestion = 0;
     let score = 0;
 
-    // Menü oluştur
-    const menuDiv = document.getElementById("menu");
-    Object.keys(tests).forEach(key => {
-      const btn = document.createElement("button");
-      btn.textContent = tests[key].name;
-      btn.onclick = () => startTest(key);
-      menuDiv.appendChild(btn);
+    document.addEventListener("DOMContentLoaded", () => {
+  const menuDiv = document.getElementById("menu");
+  Object.keys(tests).forEach(key => {
+    const btn = document.createElement("button");
+    btn.textContent = tests[key].name;
+    btn.onclick = () => startTest(key);
+    menuDiv.appendChild(btn);
     });
 
     // Test başlat
