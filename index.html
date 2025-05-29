@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Gelişmiş Test Sitesi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #74ebd5, #acb6e5);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 2rem;
+      background: rgba(255, 255, 255, 0.95);
+      padding: 2.5rem;
+      border-radius: 20px;
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    }
+    .menu, .question-box, .result, .loading, .auth-box {
+      display: none;
+    }
+    .active {
+      display: block;
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      margin: 12px 0;
+      font-size: 1.1rem;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+      color: white;
+      cursor: pointer;
+      transition: transform 0.3s, box-shadow 0.3s;
+      font-weight: 600;
+    }
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    .auth-button {
+      background: linear-gradient(45deg, #4285f4, #34a853);
+    }
+    .apple-button {
+      background: linear-gradient(45deg, #000000, #333333);
+    }
+    .progress-bar {
+      background: #e0e0e0;
+      height: 25px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+      box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745, #68d391);
+      width: 0%;
+      transition: width 0.5s ease-in-out;
+    }
+    .question {
+      font-weight: 700;
+      font-size: 1.3rem;
+      margin-bottom: 1.5rem;
+      color: #2c3e50;
+      animation: fadeIn 0.5s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .loading {
+      text-align: center;
+      font-size: 1.5rem;
+      color: #2c3e50;
+      animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+    .emoji {
+      font-size: 3rem;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .share {
+      text-align: center;
+      margin-top: 1.5rem;
+    }
+    .share button {
+      background: linear-gradient(45deg, #1e90ff, #00b4d8);
+    }
+    .result-text {
+      font-size: 1.2rem;
+      color: #2c3e50;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .result-image {
+      width: 100%;
+      max-width: 400px;
+      border-radius: 12px;
+      margin: 1rem auto;
+      display: block;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .badge {
+      font-size: 1rem;
+      color: #d4a017;
+      text-align: center;
+      margin: 1rem 0;
+      font-weight: 600;
+    }
+    .completion-bar {
+      margin: 1rem 0;
+      font-size: 1rem;
+      color: #2c3e50;
+      text-align: center;
+    }
+    .leaderboard {
+      margin: 1rem 0;
+      font-size: 1rem;
+      color: #2c3e50;
+      text-align: center;
+    }
+    .user-info {
+      font-size: 1rem;
+      color: #2c3e50;
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 Süper Test Merkezi</h1>
+    <div class="user-info" id="userInfo"></div>
+    <div class="auth-box active" id="authBox">
+      <button class="auth-button" onclick="signInWithGoogle()">Google ile Giriş Yap</button>
+      <button class="apple-button" onclick="signInWithApple()">Apple ile Giriş Yap</button>
+    </div>
+    <div class="completion-bar" id="completionBar">0/10 testi tamamladın! Hadi, hepsini çöz! 🚀</div>
+    <div class="leaderboard" id="leaderboard">Lider Tablosu: Henüz sıralama yok!</div>
+
+    <div class="menu" id="menu"></div>
+
+    <div class="question-box" id="quiz">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="question" id="questionText"></div>
+      <div>
+        <button onclick="answer(0)" id="btn0">Seçenek 1</button>
+        <button onclick="answer(1)" id="btn1">Seçenek 2</button>
+        <button onclick="answer(2)" id="btn2">Seçenek 3</button>
+      </div>
+    </div>
+
+    <div class="loading" id="loading">🔍 Sonuçlar hazırlanıyor...</div>
+
+    <div class="result" id="result">
+      <div class="emoji" id="emoji"></div>
+      <div class="badge" id="badge"></div>
+      <img class="result-image" id="resultImage" src="" alt="Test Sonucu Görseli">
+      <div class="result-text" id="resultText"></div>
+      <div class="share">
+        <button onclick="shareResult('twitter')">🐦 Twitter</button>
+        <button onclick="shareResult('tiktok')">🎵 TikTok</button>
+        <button onclick="shareResult('instagram')">📸 Instagram</button>
+      </div>
+      <button onclick="goHome()">Ana Menüye Dön</button>
+      <button onclick="tryAnotherTest()">Başka Bir Test Dene</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+
+  <script>
+    // Firebase yapılandırması (Kendi projenden al)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Firebase'i başlat
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const testNames = ["Kişilik", "Stres", "Motivasyon", "Empati", "Zeka", "Risk", "İletişim", "Odak", "Mutluluk", "Yaratıcılık"];
+
+    const tests = {
+      kişilik: {
+        name: "Kişilik Testi",
+        emoji: "😎",
+        badge: "Kişilik Gurusu",
+        images: {
+          high: "https://images.unsplash.com/photo-1515041219749-89347f83291a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1522075782449-e45a34f1ddfb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1500462916183-025b6f8c07f0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Bir partide genellikle ne yaparsın?", options: ["Ortada dans ederim!", "Bir köşede derin sohbetler yaparım", "Erken kaçarım"], scores: [2, 1, 0] },
+          { q: "Yeni insanlarla tanışmak seni nasıl hissettirir?", options: ["Bayılırım, yeni macera!", "Fena değil, alışırım", "Pek hoşlanmam"], scores: [2, 1, 0] },
+          { q: "Plan yapmayı mı seversin, yoksa anı mı yaşarsın?", options: ["Her şey planlı!", "Duruma göre değişir", "Anı yaşarım"], scores: [1, 1, 2] },
+          { q: "Bir karar verirken neye güvenirsin?", options: ["Mantığıma", "Hem mantık hem his", "İçgüdülerime"], scores: [1, 2, 1] },
+          { q: "Kalabalık bir grupta lider misindir?", options: ["Tabii ki, ben önderim!", "Bazen devreye girerim", "Başkaları yönetsin"], scores: [2, 1, 0] },
+          { q: "Başkalarının seni nasıl tanımlamasını istersin?", options: ["Eğlenceli", "Güvenilir", "Sakin"], scores: [2, 1, 0] },
+          { q: "Bir hata yaptığında nasıl tepki verirsin?", options: ["Hemen düzeltirim", "Üzerinde düşünürüm", "Çok takmam"], scores: [2, 1, 0] },
+          { q: "Hangi ortamda daha rahatsın?", options: ["Kalabalıkta", "Küçük gruplarda", "Yalnızken"], scores: [2, 1, 0] },
+          { q: "Yeni bir şeyler denemek seni heyecanlandırır mı?", options: ["Çok!", "Biraz", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Kendini bir kelimeyle tarif etsen?", options: ["Enerjik", "Düşünceli", "Rahat"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Kişiliğin tam bir parti canavarı! 😎 Her ortamda parlıyorsun!`;
+          if (score >= 10) return `Dengeli ve havalı bir kişiliğin var, kanka! 😊 Herkesle iyi anlaşıyorsun.`;
+          if (score >= 5) return `Kendi halinde, sakin ama güçlü bir kişilik! 💪 Biraz açıl, dünya seni görsün!`;
+          return `İçine kapanık ama gizemli bir çekiciliğin var! 😏 Daha çok paylaş, farkın ortaya çıksın!`;
+        }
+      },
+      stres: {
+        name: "Stres Testi",
+        emoji: "😓",
+        badge: "Stres Avcısı",
+        images: {
+          high: "https://images.unsplash.com/photo-1505455184861-77027fadb7c7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1490730141103-6e008c24e8d7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Yoğun bir günde kendini nasıl hissedersin?", options: ["Sakinim, hallederim", "Biraz gerginim", "Tam bir kaos!"], scores: [2, 1, 0] },
+          { q: "Bir deadline yaklaşırken ne yaparsın?", options: ["Plan yaparım", "Panik olurum", "Ertelemeyi düşünürüm"], scores: [2, 1, 0] },
+          { q: "Uykusuz kaldığında nasıl tepki verirsin?", options: ["Hala enerjik", "Huysuzlaşırım", "Biterim"], scores: [2, 1, 0] },
+          { q: "Bir tartışma sonrası ne kadar sürede sakinleşirsin?", options: ["Hemen", "Biraz zaman alır", "Uzun süre"], scores: [2, 1, 0] },
+          { q: "Stresle başa çıkmak için ne yaparsın?", options: ["Spor veya meditasyon", "Arkadaşla dertleşirim", "İçime kapanırım"], scores: [2, 1, 0] },
+          { q: "Birden fazla iş geldiğinde ne hissedersin?", options: ["Hepsini organize ederim", "Biraz bunaltır", "Kaçmak isterim"], scores: [2, 1, 0] },
+          { q: "Zamanın yetmediğini hissettiğinde?", options: ["Öncelik belirlerim", "Stres yaparım", "Her şeyi bırakırım"], scores: [2, 1, 0] },
+          { q: "Yoğun bir hafta sonrası ne yaparsın?", options: ["Dinlenirim", "Hala koştururum", "Kendimi tüketirim"], scores: [2, 1, 0] },
+          { q: "Stresli bir ortamda nasıl davranırsın?", options: ["Sakin kalırım", "Gergin olurum", "Ortamdan kaçarım"], scores: [2, 1, 0] },
+          { q: "Stres seni nasıl etkiler?", options: ["Motivasyonum artar", "Verimim düşer", "Tamamen dururum"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Stres mi? O senin rakibin olamaz! 😎 Sakinliğinle herkesi büyülüyorsun!`;
+          if (score >= 10) return `Stresi iyi yönetiyorsun, kanka! 😊 Biraz daha rahatla, her şey yoluna girer.`;
+          if (score >= 5) return `Stresle aran biraz gergin, ama idare ediyorsun! 💪 Nefes egzersizi dene!`;
+          return `Stres seni biraz yoruyor galiba. 😓 Hadi, biraz mola ver, her şey düzelecek!`;
+        }
+      },
+      motivasyon: {
+        name: "Motivasyon Testi",
+        emoji: "🔥",
+        badge: "Motivasyon Ustası",
+        images: {
+          high: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Yeni bir hedef koyduğunda ne hissedersin?", options: ["Hemen harekete geçerim", "Plan yaparım", "Erteleyebilirim"], scores: [2, 1, 0] },
+          { q: "Zor bir görevle karşılaştığında?", options: ["Mücadele ederim", "Denerim ama zorlanırım", "Vazgeçebilirim"], scores: [2, 1, 0] },
+          { q: "Başarı seni nasıl etkiler?", options: ["Daha çok çalışırım", "Memnun olurum", "Rahatlarım"], scores: [2, 1, 0] },
+          { q: "Sabah uyandığında ne hissedersin?", options: ["Enerji doluyum!", "Normal, idare eder", "Uyanmak istemem"], scores: [2, 1, 0] },
+          { q: "Hedeflerine ulaşmak için ne yaparsın?", options: ["Planlı ilerlerim", "Elimden geleni yaparım", "Bazen pes ederim"], scores: [2, 1, 0] },
+          { q: "Engellerle karşılaştığında ne olur?", options: ["Üstesinden gelirim", "Yavaşlarım", "Dururum"], scores: [2, 1, 0] },
+          { q: "Başkalarının motivasyonu seni etkiler mi?", options: ["Çok, ilham alırım", "Biraz etkiler", "Pek umursamam"], scores: [2, 1, 0] },
+          { q: "Bir projeyi bitirmek seni nasıl hissettirir?", options: ["Zafer gibi!", "İyi hissettirir", "Fark etmez"], scores: [2, 1, 0] },
+          { q: "Kendini motive etmek için ne yaparsın?", options: ["Hedefler koyarım", "Müzik veya ilham", "Pek bir şey yapmam"], scores: [2, 1, 0] },
+          { q: "Uzun vadeli hedefler seni nasıl etkiler?", options: ["Heyecanlandırır", "Normal gelir", "Sıkıcı bulurum"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Motivasyonun alev alev, kanka! 🔥 Hedeflerin peşinden koşmaya devam!`;
+          if (score >= 10) return `Motivasyonun fena değil, biraz daha gazla yıldız olursun! 😎`;
+          if (score >= 5) return `Arada motive oluyorsun, ama daha sıkı tutunsan neler yaparsın! 💪`;
+          return `Motivasyon biraz düşük, hadi bir kıvılcım yakalım! 🚀 Küçük adımlarla başla!`;
+        }
+      },
+      empati: {
+        name: "Empati Testi",
+        emoji: "🤝",
+        badge: "Empati Kahramanı",
+        images: {
+          high: "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1511632765486-a01980e01df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1500462916183-025b6f8c07f0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Bir arkadaşın üzgünken ne yaparsın?", options: ["Dinler, destek olurum", "Biraz konuşurum", "Pek karışmam"], scores: [2, 1, 0] },
+          { q: "Başkalarının duygularını anlamak senin için kolay mı?", options: ["Çok kolay", "Bazen", "Zor gelir"], scores: [2, 1, 0] },
+          { q: "Birinin yerinde olsan ne hissederdin?", options: ["Hemen anlarım", "Düşünmem gerekir", "Pek düşünmem"], scores: [2, 1, 0] },
+          { q: "Tartışmalarda ne yaparsın?", options: ["Karşı tarafı anlamaya çalışırım", "Kendi fikrimi savunurum", "Tartışmaktan kaçarım"], scores: [2, 1, 0] },
+          { q: "Birinin sevincine ne kadar katılırsın?", options: ["Çok sevinirim", "Normal sevinirim", "Pek etkilenmem"], scores: [2, 1, 0] },
+          { q: "Başkalarının ihtiyaçlarını fark eder misin?", options: ["Hemen fark ederim", "Bazen fark ederim", "Pek dikkat etmem"], scores: [2, 1, 0] },
+          { q: "Birinin gözyaşları seni nasıl etkiler?", options: ["Çok etkilenirim", "Biraz üzülürüm", "Normal gelir"], scores: [2, 1, 0] },
+          { q: "Eleştiriye nasıl yaklaşırsın?", options: ["Dinler, anlamaya çalışırım", "Savunmaya geçerim", "Umursamam"], scores: [2, 1, 0] },
+          { q: "Başkalarına yardım etmek seni nasıl hissettirir?", options: ["Harika!", "İyi hissettirir", "Fark etmez"], scores: [2, 1, 0] },
+          { q: "Birinin bakış açısını anlamak için ne yaparsın?", options: ["Sorar, öğrenirim", "Biraz düşünürüm", "Pek uğraşmam"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Empati konusunda bir efsanesin! 🤝 Herkesi anlayan bir süper kahraman!`;
+          if (score >= 10) return `Empatin gayet iyi, kanka! 😊 Biraz daha dinlersen herkes seni sever!`;
+          if (score >= 5) return `Empati seviyesi idare eder, ama biraz daha açıl, mucizeler yarat! 💪`;
+          return `Empati biraz çalışmaya ihtiyaç duyuyor. 😌 Küçük adımlarla başla, fark yaratırsın!`;
+        }
+      },
+      zeka: {
+        name: "Zeka Testi",
+        emoji: "🧠",
+        badge: "Zeka Dâhisı",
+        images: {
+          high: "https://images.unsplash.com/photo-1509228622682-30c0b8d3f15a?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1500462916183-025b6f8c07f0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Bir problemi çözerken ne yaparsın?", options: ["Hemen dalarım", "Plan yaparım", "Biraz düşünürüm"], scores: [2, 1, 0] },
+          { q: "Yeni bir beceri öğrenmek seni nasıl hissettirir?", options: ["Heyecanlı", "Meraklı", "Sıkıcı"], scores: [2, 1, 0] },
+          { q: "Bir bulmacayı çözmek ne kadar sürer?", options: ["Hızlıca çözerim", "Zaman alır", "Pek uğraşmam"], scores: [2, 1, 0] },
+          { q: "Detaylara dikkat eder misin?", options: ["Her zaman", "Bazen", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Bir tartışmada nasıl argüman yaparsın?", options: ["Mantıklı ve güçlü", "Orta karar", "Pek tartışmam"], scores: [2, 1, 0] },
+          { q: "Hızlı karar verir misin?", options: ["Evet, hemen", "Düşünürüm", "Kararsız kalırım"], scores: [2, 1, 0] },
+          { q: "Yeni bilgileri nasıl öğrenirsin?", options: ["Hızlıca kaparım", "Tekrar gerekir", "Zorlanırım"], scores: [2, 1, 0] },
+          { q: "Bir hata yaptığında ne yaparsın?", options: ["Hemen öğrenirim", "Düşünürüm", "Takmam"], scores: [2, 1, 0] },
+          { q: "Strateji oyunlarını sever misin?", options: ["Bayılırım", "Arada oynarım", "Pek ilgilenmem"], scores: [2, 1, 0] },
+          { q: "Analitik düşünce senin için ne kadar önemli?", options: ["Çok önemli", "Orta karar", "Pek düşünmem"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Zekan parlıyor, kanka! 🧠 Einstein’a taş çıkarırsın!`;
+          if (score >= 10) return `Zeki ve pratiksin, biraz daha çalışsan dâhilik yakın! 😎`;
+          if (score >= 5) return `Zekan fena değil, ama biraz daha egzersizle parlayacak! 💪`;
+          return `Zeka orada, sadece biraz uyandırmak lazım! 📚 Hadi, bulmaca çözelim!`;
+        }
+      },
+      risk: {
+        name: "Risk Testi",
+        emoji: "🎲",
+        badge: "Risk Ustası",
+        images: {
+          high: "https://images.unsplash.com/photo-1519750783826-e2420f4d687f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Yeni bir şeyler denemek seni nasıl hissettirir?", options: ["Adrenalin patlaması!", "Biraz heyecan", "Endişe duyarım"], scores: [2, 1, 0] },
+          { q: "Büyük bir karar alırken ne yaparsın?", options: ["Hesaplar, atlarım", "Düşünürüm", "Tereddüt ederim"], scores: [2, 1, 0] },
+          { q: "Konfor alanından çıkmak senin için?", options: ["Harika!", "Normal", "Zor"], scores: [2, 1, 0] },
+          { q: "Bir risk aldığında nasıl hissedersin?", options: ["Canlı hissederim", "Karışık duygular", "Pişman olurum"], scores: [2, 1, 0] },
+          { q: "Spontane planlar yapar mısın?", options: ["Sürekli!", "Arada bir", "Pek yapmam"], scores: [2, 1, 0] },
+          { q: "Bilinmezlik seni nasıl etkiler?", options: ["Heyecanlandırır", "Düşündürür", "Korkutur"], scores: [2, 1, 0] },
+          { q: "Büyük bir bahse girer misin?", options: ["Tabii ki!", "Belki", "Asla"], scores: [2, 1, 0] },
+          { q: "Hızlı kararlar seni rahatsız eder mi?", options: ["Hiç!", "Bazen", "Çok"], scores: [2, 1, 0] },
+          { q: "Macera arar mısın?", options: ["Her zaman!", "Bazen", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Risk almak sence ne kadar önemli?", options: ["Çok önemli", "Orta karar", "Gerek yok"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Tam bir risk ustasısın! 🎲 Macera senin ikinci adın!`;
+          if (score >= 10) return `Risk almayı seversin, ama temkinli bir yanın da var! 😎`;
+          if (score >= 5) return `Risk konusunda dengelisin, ama biraz daha cesaret fena olmaz! 💪`;
+          return `Risk pek senlik değil, ama küçük adımlarla sınırları zorlayabilirsin! 😏`;
+        }
+      },
+      iletişim: {
+        name: "İletişim Testi",
+        emoji: "💬",
+        badge: "Sohbet Şampiyonu",
+        images: {
+          high: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1511632765486-a01980e01df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1500462916183-025b6f8c07f0?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Bir grupta konuşurken ne kadar rahatsın?", options: ["Sohbeti ben yönetirim", "Katılırım", "Sessiz kalırım"], scores: [2, 1, 0] },
+          { q: "Yeni biriyle konuşmak seni nasıl hissettirir?", options: ["Eğlenceli!", "Normal", "Gergin"], scores: [2, 1, 0] },
+          { q: "Fikirlerini ifade etmekte zorlanır mısın?", options: ["Asla!", "Bazen", "Sık sık"], scores: [2, 1, 0] },
+          { q: "Dinlemek mi, konuşmak mı?", options: ["İkisi de!", "Daha çok dinlerim", "Pek konuşmam"], scores: [2, 1, 0] },
+          { q: "Bir tartışmada nasıl davranırsın?", options: ["Sakin ve mantıklı", "Heyecanlanırım", "Kaçarım"], scores: [2, 1, 0] },
+          { q: "Vücut diline dikkat eder misin?", options: ["Çok", "Bazen", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Bir sunum yapmak seni nasıl hissettirir?", options: ["Keyifli!", "İdare eder", "Korkutucu"], scores: [2, 1, 0] },
+          { q: "Başkalarını ikna etmekte iyi misin?", options: ["Çok iyiyim", "Fena değilim", "Pek beceremem"], scores: [2, 1, 0] },
+          { q: "Açık ve net konuşur musun?", options: ["Her zaman", "Genelde", "Pek değil"], scores: [2, 1, 0] },
+          { q: "İletişim senin için ne kadar önemli?", options: ["Çok önemli", "Normal", "Pek düşünmem"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `İletişimde bir rock yıldızısın! 💬 Herkes seninle konuşmaya bayılır!`;
+          if (score >= 10) return `İletişimin gayet iyi, kanka! 😊 Biraz daha özgüven, herkes büyülenecek!`;
+          if (score >= 5) return `İletişimde idare ediyorsun, ama biraz pratikle parlayacaksın! 💪`;
+          return `İletişim biraz çalışmaya ihtiyaç duyuyor. 😌 Hadi, sohbete dalalım!`;
+        }
+      },
+      odak: {
+        name: "Odak Testi",
+        emoji: "🎯",
+        badge: "Odak Ninjası",
+        images: {
+          high: "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Bir işe odaklanmak senin için kolay mı?", options: ["Çok kolay", "Bazen", "Zor"], scores: [2, 1, 0] },
+          { q: "Telefon bildirimleri seni ne kadar etkiler?", options: ["Hiç!", "Bazen bakarım", "Hemen bakarım"], scores: [2, 1, 0] },
+          { q: "Uzun süre bir şeye konsantre olabilir misin?", options: ["Evet, saatlerce!", "Bir süre", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Bir görev sırasında ne yaparsın?", options: ["Tamamen odaklanırım", "Arada dağılırım", "Sık sık koparım"], scores: [2, 1, 0] },
+          { q: "Zihnini sakinleştirmek için ne yaparsın?", options: ["Meditasyon veya nefes", "Müzik dinlerim", "Pek bir şey yapmam"], scores: [2, 1, 0] },
+          { q: "Birden fazla işi aynı anda yapar mısın?", options: ["Hayır, tek işe odaklanırım", "Bazen", "Sürekli"], scores: [2, 1, 0] },
+          { q: "Dikkatin dağıldığında ne yaparsın?", options: ["Hemen toparlarım", "Biraz zaman alır", "Kopar giderim"], scores: [2, 1, 0] },
+          { q: "Sessiz bir ortamda mı çalışırsın?", options: ["Evet, sessizlik candır", "Fark etmez", "Gürültü severim"], scores: [2, 1, 0] },
+          { q: "Hedefine ulaşmak için ne kadar odaklanırsın?", options: ["Tamamen", "Genelde", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Odaklanma senin için ne kadar önemli?", options: ["Çok önemli", "Normal", "Pek düşünmem"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Odak konusunda lazer gibisin! 🎯 Kimse seni durduramaz!`;
+          if (score >= 10) return `Odaklanman fena değil, kanka! 😎 Biraz daha dikkat, işler patlar!`;
+          if (score >= 5) return `Odak biraz dalgalı, ama çalışırsan her şey netleşir! 💪`;
+          return `Odaklanma biraz zayıf, hadi biraz egzersiz yapalım! 😌 Pomodoro dene!`;
+        }
+      },
+      mutluluk: {
+        name: "Mutluluk Testi",
+        emoji: "😊",
+        badge: "Neşe Dağıtıcısı",
+        images: {
+          high: "https://images.unsplash.com/photo-1469474968028-566ce4985c66?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Sabah uyandığında nasıl hissedersin?", options: ["Neşeliyim!", "Normal", "Ugh, yine mi sabah"], scores: [2, 1, 0] },
+          { q: "Küçük şeyler seni mutlu eder mi?", options: ["Çok!", "Bazen", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Arkadaşlarla vakit geçirmek seni nasıl hissettirir?", options: ["Süper!", "İyi", "Fark etmez"], scores: [2, 1, 0] },
+          { q: "Bir hata yaptığında nasıl tepki verirsin?", options: ["Güler geçerim", "Düşünürüm", "Üzülürüm"], scores: [2, 1, 0] },
+          { q: "Hayatta ne seni en çok mutlu eder?", options: ["Sevdiklerim", "Başarılarım", "Rahatlık"], scores: [2, 1, 0] },
+          { q: "Güne başlarken ne yaparsın?", options: ["Gülümserim", "Normal başlarım", "Mızmızlanırım"], scores: [2, 1, 0] },
+          { q: "Olumlu düşünmek senin için kolay mı?", options: ["Çok kolay", "Bazen", "Zor"], scores: [2, 1, 0] },
+          { q: "Bir iltifat aldığında ne hissedersin?", options: ["Çok mutlu olurum", "Gülümserim", "Pek etkilenmem"], scores: [2, 1, 0] },
+          { q: "Kendinle aran nasıl?", options: ["Süper, kendimi severim", "İyi sayılır", "Pek iyi değil"], scores: [2, 1, 0] },
+          { q: "Mutluluk senin için ne demek?", options: ["Her an keyif almak", "Hedeflere ulaşmak", "Pek düşünmem"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Mutluluk senin göbek adın! 😊 Etrafına neşe saçıyorsun, kanka!`;
+          if (score >= 10) return `Genelde mutlusun, ama biraz daha gülümse, dünya güzelleşir! 😎`;
+          if (score >= 5) return `Mutluluk arada uğruyor, hadi onu daha sık çağır! 💪`;
+          return `Mutluluk biraz uzak, ama küçük adımlarla her şey parlar! 😌 Hadi, gülümse!`;
+        }
+      },
+      yaratıcılık: {
+        name: "Yaratıcılık Testi",
+        emoji: "🎨",
+        badge: "Yaratıcılık Dâhisi",
+        images: {
+          high: "https://images.unsplash.com/photo-1510936111840-65e151ad71bb?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          mid: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+          low: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60"
+        },
+        questions: [
+          { q: "Yeni bir fikir bulmak seni nasıl hissettirir?", options: ["Süper heyecanlı!", "İyi hissettirir", "Normal"], scores: [2, 1, 0] },
+          { q: "Bir problemi çözerken ne yaparsın?", options: ["Farklı yollar denerim", "Standart çözümler", "Pek uğraşmam"], scores: [2, 1, 0] },
+          { q: "Sanatsal bir şeyler yapmayı sever misin?", options: ["Bayılırım!", "Arada bir", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Hayal kurmak senin için ne kadar önemli?", options: ["Çok!", "Bazen", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Bir fikri geliştirmek seni heyecanlandırır mı?", options: ["Çok!", "Biraz", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Rutinden sıkılır mısın?", options: ["Hemen!", "Bazen", "Alışığım"], scores: [2, 1, 0] },
+          { q: "Bir şeyi farklı yapmayı sever misin?", options: ["Her zaman!", "Arada bir", "Pek yapmam"], scores: [2, 1, 0] },
+          { q: "Başkalarının fikirlerine açık mısın?", options: ["Çok açık", "Bazen", "Pek değil"], scores: [2, 1, 0] },
+          { q: "Bir projeye ne kadar yaratıcılık katarsın?", options: ["Tons of it!", "Biraz", "Pek katmam"], scores: [2, 1, 0] },
+          { q: "Yaratıcılık senin için ne demek?", options: ["Hayat tarzım", "Güzel bir ek", "Pek düşünmem"], scores: [2, 1, 0] }
+        ],
+        result: score => {
+          if (score >= 16) return `Yaratıcılıkta bir dâhisin! 🎨 Fikirlerinle dünyayı renklendiriyorsun!`;
+          if (score >= 10) return `Yaratıcı bir ruhun var, kanka! 😎 Biraz daha özgür bırak, mucizeler yarat!`;
+          if (score >= 5) return `Yaratıcılık orada, ama biraz daha ortaya çıkması lazım! 💪 Hadi, çiz bir şeyler!`;
+          return `Yaratıcılık biraz uyuyor, hadi uyandırıp şaheserler yapalım! 😌`;
+        }
+      }
+    };
+
+    let currentUser = null;
+    let currentTest = null;
+    let currentQuestion = 0;
+    let score = 0;
+
+    // Kullanıcı durumu takibi
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+        document.getElementById("userInfo").textContent = `Merhaba, ${user.displayName}!`;
+        document.getElementById("authBox").classList.remove("active");
+        document.getElementById("menu").classList.add("active");
+        updateCompletionBar();
+        updateLeaderboard();
+      } else {
+        currentUser = null;
+        document.getElementById("userInfo").textContent = "";
+        document.getElementById("authBox").classList.add("active");
+        document.getElementById("menu").classList.remove("active");
+        document.getElementById("quiz").classList.remove("active");
+        document.getElementById("result").classList.remove("active");
+      }
+    });
+
+    // Google ile giriş
+    function signInWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .catch(error => alert("Google giriş hatası: " + error.message));
+    }
+
+    // Apple ile giriş
+    function signInWithApple() {
+      const provider = new firebase.auth.OAuthProvider('apple.com');
+      auth.signInWithPopup(provider)
+        .catch(error => alert("Apple giriş hatası: " + error.message));
+    }
+
+    // Menü oluştur
+    const menuDiv = document.getElementById("menu");
+    Object.keys(tests).forEach(key => {
+      const btn = document.createElement("button");
+      btn.textContent = tests[key].name;
+      btn.onclick = () => startTest(key);
+      menuDiv.appendChild(btn);
+    });
+
+    // Test başlat
+    function startTest(testKey) {
+      if (!currentUser) {
+        alert("Lütfen önce giriş yap!");
+        return;
+      }
+      currentTest = tests[testKey];
+      currentQuestion = 0;
+      score = 0;
+      document.getElementById("menu").classList.remove("active");
+      document.getElementById("quiz").classList.add("active");
+      document.getElementById("result").classList.remove("active");
+      loadQuestion();
+    }
+
+    // Soru yükle
+    function loadQuestion() {
+      const total = currentTest.questions.length;
+      const progress = (currentQuestion / total) * 100;
+      document.getElementById("progressFill").style.width = `${progress}%`;
+
+      const q = currentTest.questions[currentQuestion];
+      document.getElementById("questionText").textContent = q.q;
+      document.getElementById("btn0").textContent = q.options[0];
+      document.getElementById("btn1").textContent = q.options[1];
+      document.getElementById("btn2").textContent = q.options[2];
+    }
+
+    // Cevap işleme
+    function answer(choice) {
+      score += currentTest.questions[currentQuestion].scores[choice];
+      currentQuestion++;
+      if (currentQuestion < currentTest.questions.length) {
+        loadQuestion();
+      } else {
+        showLoading();
+      }
+    }
+
+    // Yükleniyor ekranı
+    function showLoading() {
+      document.getElementById("quiz").classList.remove("active");
+      document.getElementById("loading").classList.add("active");
+      setTimeout(showResult, 1500);
+    }
+
+    // Sonuç göster
+    async function showResult() {
+      document.getElementById("loading").classList.remove("active");
+      document.getElementById("result").classList.add("active");
+      document.getElementById("emoji").textContent = currentTest.emoji;
+      document.getElementById("badge").textContent = `Rozet Kazandın: ${currentTest.badge} 🏆`;
+      document.getElementById("resultText").textContent = currentTest.result(score);
+
+      // Görsel seçimi
+      let imageUrl = currentTest.images.low;
+      if (score >= 16) imageUrl = currentTest.images.high;
+      else if (score >= 10) imageUrl = currentTest.images.mid;
+      document.getElementById("resultImage").src = imageUrl;
+
+      // Firestore'a kaydet
+      if (currentUser) {
+        const userRef = db.collection("users").doc(currentUser.uid);
+        await userRef.set({
+          displayName: currentUser.displayName,
+          completedTests: firebase.firestore.FieldValue.arrayUnion(currentTest.name),
+          badges: firebase.firestore.FieldValue.arrayUnion(currentTest.badge),
+          totalScore: firebase.firestore.FieldValue.increment(score)
+        }, { merge: true });
+        updateCompletionBar();
+        updateLeaderboard();
+      }
+    }
+
+    // Ana menüye dön
+    function goHome() {
+      document.getElementById("result").classList.remove("active");
+      document.getElementById("menu").classList.add("active");
+    }
+
+    // Başka test dene
+    function tryAnotherTest() {
+      document.getElementById("result").classList.remove("active");
+      document.getElementById("menu").classList.add("active");
+    }
+
+    // Sonuç paylaş
+    function shareResult(platform) {
+      const text = document.getElementById("resultText").textContent;
+      const badge = document.getElementById("badge").textContent;
+      const url = encodeURIComponent(window.location.href);
+      const shareText = encodeURIComponent(`${text} ${badge} Testi çöz, senin sıran!`);
+
+      if (platform === 'twitter') {
+        window.open(`https://twitter.com/intent/tweet?text=${shareText}%20%7C%20${url}`, '_blank');
+        alert("Sonucunu Twitter'da paylaştın, kanka! 😎 Hadi, bir testi daha çöz!");
+      } else if (platform === 'tiktok') {
+        alert("TikTok'ta paylaşmak için ekran görüntüsü al, havalı bir video yap, kanka! 😎");
+      } else if (platform === 'instagram') {
+        alert("Instagram'da hikayene ekle, bu sonucu herkes görsün! 📸 Filtreyi unutma!");
+      }
+    }
+
+    // Tamamlanma barını güncelle
+    async function updateCompletionBar() {
+      if (!currentUser) return;
+      const userRef = db.collection("users").doc(currentUser.uid);
+      const doc = await userRef.get();
+      const completedTests = doc.exists ? (doc.data().completedTests || []) : [];
+      const completedCount = completedTests.length;
+      const totalTests = testNames.length;
+      document.getElementById("completionBar").textContent = `${completedCount}/${totalTests} testi tamamladın! Hadi, hepsini çöz! 🚀`;
+    }
+
+    // Lider tablosunu güncelle
+    async function updateLeaderboard() {
+      const usersRef = db.collection("users");
+      const snapshot = await usersRef.orderBy("totalScore", "desc").limit(5).get();
+      let leaderboardText = "Lider Tablosu:\n";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        leaderboardText += `${data.displayName}: ${data.totalScore || 0} puan\n`;
+      });
+      document.getElementById("leaderboard").textContent = leaderboardText;
+    }
+  </script>
+</body>
+</html>
